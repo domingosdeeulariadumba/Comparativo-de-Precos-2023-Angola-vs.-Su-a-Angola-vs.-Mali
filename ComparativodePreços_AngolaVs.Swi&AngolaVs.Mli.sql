@@ -299,7 +299,7 @@ SELECT SUM(PriceSwi) [Total de Bens da Cesta Básica na Suiça ($)] FROM PricesAoS
 
 SELECT *, ROUND((PriceAoSwi-PriceSwi),2) AS [Diferença ($)], ROUND(((PriceAoSwi/PriceSwi)*100),2) AS [Rácio (%)] FROM PricesAoSwi;
 
--- que produtos em angola são mais baratos ou teem os preços equiparados na Suiça? | Which products in Angola are cheaper or have similar prices in Switzerland? --
+-- que produtos em angola são mais baratos ou tem os preços equiparados na Suiça? | Which products in Angola are cheaper or have similar prices in Switzerland? --
 
 SELECT ProductOrService, ROUND(((PriceAoSwi/PriceSwi)*100),2) AS [Rácio (%)] FROM PricesAoSwi WHERE ((PriceAoSwi/PriceSwi)*100) <=100
 ORDER BY [Rácio (%)] DESC;
