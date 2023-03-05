@@ -7,9 +7,12 @@ Switzerland and Mali (once Chad has no data in one of the sources). Source: http
 
 
 /*Criação da base de dados| Creating the database*/
+
 CREATE DATABASE PricesAoSwiMli2023;
 
+
 /*Criação da primeira tabela (Angola Vs. Suiça)| Creating the first table (Angola Vs. Switzerland)*/
+
 CREATE TABLE PricesAoSwi (
 IDItem INT IDENTITY(1,1) PRIMARY KEY,
 ProductOrService VARCHAR (50) UNIQUE,
@@ -21,8 +24,6 @@ PriceSwi REAL,
 EXEC sp_COLUMNS PricesAoSwi;
 
 /*Inserindo dados na primeira tabela|Inserting data into the first table*/
-
-
 
 INSERT INTO PricesAoSwi (ProductOrService, Sector, PriceAo, PriceSwi)
 VALUES('Cerveja Importada 330 ml', 'Cesta Básica', 0.79, 2.7);
@@ -118,11 +119,16 @@ INSERT INTO PricesAoSwi (ProductOrService, Class, PriceAo, PriceSwi)
 VALUES
 ('Cinema (entrada/bilhete))', 'Recreação', 5.35, 20.94),
 ('Maço de cigarro (Marlboro)', 'Recreação', 2.38, 9.69);
+
 		-- alteração de alguns atributos para facilitar o entendimento dos dados | I updated some atributes to make the data better understanding--
+
 EXEC sp_RENAME 'PricesAoSwi.IDItem', 'IDAoSwi', 'COLUMN';
 EXEC sp_RENAME 'PricesAoSwi.PriceAo', 'PriceAoSwi', 'COLUMN';
 SELECT * FROM PricesAoSwi;
+
+
 /*Criação da segunda tabela (Angola Vs. Mali)| Creating the Second table (Angola Vs. Mali)*/
+
 CREATE TABLE PricesAoMli(
 IDAoMli INT IDENTITY (61, 1) PRIMARY KEY,
 ProductOrService VARCHAR (150),
@@ -132,7 +138,9 @@ PriceMli REAL);
 
 EXEC sp_RENAME 'PricesAoMli.CLASS', 'Class', 'COLUMN'
 
+
 /*Inserindo dados na segunda tabela|Inserting data into the second table*/
+
 INSERT INTO PricesAoMli(ProductOrService, Class, PriceAoMli, PriceMli) 
 VALUES
 ('Cerveja Importada 330 ml', 'Cesta Básica', 0.79, 1.85),
@@ -211,10 +219,12 @@ VALUES
 
 
 -- correção do dado referente a classe de serviços/correction regarding 'Serviços' class--
+
 UPDATE PriceAoSwi SET PriceSwi = 0.31 WHERE Class= 'Serviços';
 UPDATE PriceAoSwi SET PriceAoSwi = 0.13 WHERE Class= 'Serviços'
 
 -- nova correção do dado referente a classe de serviços por aplicação equívoca da sintaxe/new correction regarding 'serviços' class due to mistaken application of the syntax --
+
 UPDATE PricesAoSwi SET PriceAoSwi = 186.06 WHERE IDAoSwi= 35;
 UPDATE PricesAoSwi SET PriceSwi = 58.45 WHERE IDAoSwi= 35;
 
@@ -223,11 +233,76 @@ UPDATE PricesAoSwi SET PriceSwi = 242.38 WHERE IDAoSwi= 37;
 
 --Até aqui, inserimos os dados das duas tabelas. daremos sequencia com algumas operações. |We have entered data from both tables. we will proceed with some operations.
 
+SELECT * FROM PricesAoSwi;
+SELECT * FROM PricesAoMli;
+
+-- verificando se o número de registo é proporcional nas duas tabelas | checking if we have the same number of records in the two tables. 
+
+SELECT COUNT (ProductOrService) AS "Itens Angola e Suíça"  FROM PricesAoSwi;
+SELECT COUNT (ProductOrService) AS "Itens Angola e Mali"  FROM PricesAoMli;
+
+-- por, equivocadamente, não termos comparado o item maçã para o caso de Angola e Mali, passaremos a incluí-lo na linha de código a seguir|because we have mistakenly not compared the "apple" item for angola and Mali, we will include it in the below line of code --
+
+INSERT INTO PricesAoMli(ProductOrService, Class, PriceAoMli)
+Values ('Maçãs (1 Kg)', 'Cesta Básica',3.37);
+
+SELECT * FROM PricesAoSwi;
+SELECT * FROM PricesAoMli;
 
 
+-- queremos saber que produtos são comparativamente mais caros entre Angola e Suiça, ordenados de maneira crescente | we want to know which products are comparatively more expensive between Angola and Switzerland, in ascending order --
+
+SELECT ProductOrService AS 'Produtos mais baratos em angola que na Suiça', PriceAoSwi, PriceSwi FROM PricesAoSwi WHERE PriceAoSwi < PriceSwi
+ORDER BY PriceAoSwi ASC;
 
 
+-- agora, no total dos bens compilados, quantos são mais caros em Angola, e quantos na Suiça? | now, in the total of compiled goods, how many are more expensive in Angola, and how many in Switzerland? --
 
+SELECT COUNT (ProductOrService) [Quantidade de Bens Mais Baratos em Angola que na Suiça]
+FROM PricesAoSwi WHERE PriceAoSwi < PriceSwi;
+
+SELECT COUNT (ProductOrService) [Quantidade de Bens Mais Caros em Angola que na Suiça] FROM PricesAoSwi WHERE PriceAoSwi > PriceSwi;
+
+
+-- No total, em USD, onde os bens são mais caros? | Globally, in USD, where are goods most expensive? --
+
+SELECT SUM(PriceAoSwi) [Total de Bens mais Baratos em Angola que na Suiça ($)] FROM PricesAoSwi WHERE PriceAoSwi < PriceSwi;
+
+SELECT SUM(PriceAoSwi) [Total de Bens mais Caros em Angola que na Suiça ($)] FROM PricesAoSwi WHERE PriceAoSwi > PriceSwi;
+
+
+-- que produto é mais caro em angola, e qual o seu valor? Qual o mais Barato? | what product is more expensive in angola, and what is its value? Which is the cheapest?--
+
+SELECT PriceAoSwi, ProductOrService [Produto mais Caro em Angola] FROM PricesAoSwi WHERE PriceAoSwi IN (
+	SELECT MAX (PriceAoSwi) [Produto mais Caro em Angola] FROM PricesAoSwi);
+
+SELECT PriceAoSwi, ProductOrService [Produto mais Barato em Angola] FROM PricesAoSwi WHERE PriceAoSwi IN (
+	SELECT MIN (PriceAoSwi) [Produto Menos Caro em Angola] FROM PricesAoSwi);
+
+	-- que produto é mais caro na Suiça, e qual o seu valor? Qual o mais Barato? | which product is more expensive in Switzerland, and how much is it? Which is the cheapest?--
+
+SELECT PriceSwi, ProductOrService [Produto mais Caro na Suiça] FROM PricesAoSwi WHERE PriceSwi IN (
+	SELECT MAX (PriceSwi) [Produto mais Caro em Angola] FROM PricesAoSwi);
+
+SELECT PriceSwi, ProductOrService [Produto mais Barato na Suiça] FROM PricesAoSwi WHERE PriceSwi IN (
+	SELECT MIN (PriceSwi) [Produto Menos Caro em Angola] FROM PricesAoSwi);
+
+	 
+-- onde é que a cesta básica é mais cara? | where is the stapple foods more expensive?--
+
+SELECT SUM(PriceAoSwi) [Total de Bens da Cesta Básica em Angola ($)] FROM PricesAoSwi WHERE Class = 'Cesta Básica';
+
+SELECT SUM(PriceSwi) [Total de Bens da Cesta Básica na Suiça ($)] FROM PricesAoSwi WHERE Class = 'Cesta Básica';
+
+
+-- encontre a diferença entre os preços de cada produto e seu respectivo rácio | find the difference between the prices of each product and their respective ratio--
+
+SELECT *, ROUND((PriceAoSwi-PriceSwi),2) AS [Diferença ($)], ROUND(((PriceAoSwi/PriceSwi)*100),2) AS [Rácio (%)] FROM PricesAoSwi;
+
+-- que produtos em angola são mais baratos ou teem os preços equiparados na Suiça? | Which products in Angola are cheaper or have similar prices in Switzerland? --
+
+SELECT ProductOrService, ROUND(((PriceAoSwi/PriceSwi)*100),2) AS [Rácio (%)] FROM PricesAoSwi WHERE ((PriceAoSwi/PriceSwi)*100) <=100
+ORDER BY [Rácio (%)] DESC;
 
 
 
