@@ -21,7 +21,9 @@ PriceAo REAL,
 PriceSwi REAL,
 );
 
+
 EXEC sp_COLUMNS PricesAoSwi;
+
 
 /*Inserindo dados na primeira tabela|Inserting data into the first table*/
 
@@ -50,7 +52,12 @@ VALUES('Alface (1 unidade)', 'Cesta Básica', 1.11, 2.46),
 ('Pão (1 Kg)', 'Cesta Básica', 1.43, 3.30),
 ('Leite (1 L)', 'Cesta Básica', 2.38, 1.80);
 
-EXEC sp_RENAME 'PricesAoSwi.Sector', 'Class', 'COLUMN';
+		-- correção do preço de "tomates" na Suiça | correcting the price of "tomatoes" in Switzerland--
+		UPDATE PricesAoSwi
+		Set PriceSwi = 4.29 WHERE PricesAoSwi.ProductOrService ='Tomates (1 kg)';
+
+		-- alteração do nome da coluna de 'Sector' para 'Class' | column name changed from 'Sector' to 'Class'--
+		EXEC sp_RENAME 'PricesAoSwi.Sector', 'Class', 'COLUMN';
 
 INSERT INTO PricesAoSwi (ProductOrService, Class, PriceAo, PriceSwi)
 VALUES('Agua (garrafa de 330 ml)', 'Restaurantes', 1.17, 4.08),
@@ -59,9 +66,10 @@ VALUES('Agua (garrafa de 330 ml)', 'Restaurantes', 1.17, 4.08),
 ('Cerveja importada (garrafa de 330 ml)', 'Restaurantes', 1.25, 6.61),
 ('Cerveja Nacional (0.5L)', 'Restaurantes', 2.18, 7.16),
 ('Menu McDonalds, Burger King ou Similares', 'Restaurantes', 9.92, 16.52);
-
-ALTER TABLE PricesAoSwi
-ALTER COLUMN ProductOrService VARCHAR (150);
+		
+		-- alterando o tamanho da variável 'ProductOrService' | changing the size of 'ProductOrService' attribute --
+		ALTER TABLE PricesAoSwi
+		ALTER COLUMN ProductOrService VARCHAR (150);
 
 INSERT INTO PricesAoSwi (ProductOrService, Class, PriceAo, PriceSwi)
 VALUES
@@ -120,11 +128,11 @@ VALUES
 ('Cinema (entrada/bilhete))', 'Recreação', 5.35, 20.94),
 ('Maço de cigarro (Marlboro)', 'Recreação', 2.38, 9.69);
 
-		-- alteração de alguns atributos para facilitar o entendimento dos dados | I updated some atributes to make the data better understanding--
 
-EXEC sp_RENAME 'PricesAoSwi.IDItem', 'IDAoSwi', 'COLUMN';
-EXEC sp_RENAME 'PricesAoSwi.PriceAo', 'PriceAoSwi', 'COLUMN';
-SELECT * FROM PricesAoSwi;
+		-- alteração de alguns atributos para facilitar o entendimento dos dados | update of some atributes to make the data better understanding--
+		EXEC sp_RENAME 'PricesAoSwi.IDItem', 'IDAoSwi', 'COLUMN';
+		EXEC sp_RENAME 'PricesAoSwi.PriceAo', 'PriceAoSwi', 'COLUMN';
+		SELECT * FROM PricesAoSwi;
 
 
 /*Criação da segunda tabela (Angola Vs. Mali)| Creating the Second table (Angola Vs. Mali)*/
@@ -136,7 +144,8 @@ CLASS VARCHAR (50),
 PriceAoMli REAL,
 PriceMli REAL);
 
-EXEC sp_RENAME 'PricesAoMli.CLASS', 'Class', 'COLUMN'
+		-- alteração do formato do atributo 'CLASS' para 'Class' | Changing the 'CLASS' attribute format to 'Class' --
+		EXEC sp_RENAME 'PricesAoMli.CLASS', 'Class', 'COLUMN'
 
 
 /*Inserindo dados na segunda tabela|Inserting data into the second table*/
@@ -218,36 +227,37 @@ VALUES
 ('Maço de cigarro (Marlboro)', 'Recreação', 2.38, 1.49);
 
 
--- correção do dado referente a classe de serviços/correction regarding 'Serviços' class--
+		-- correção do dado referente a classe de serviços/correction regarding 'Serviços' class--
+		UPDATE PriceAoSwi SET PriceSwi = 0.31 WHERE Class= 'Serviços';
+		UPDATE PriceAoSwi SET PriceAoSwi = 0.13 WHERE Class= 'Serviços';
 
-UPDATE PriceAoSwi SET PriceSwi = 0.31 WHERE Class= 'Serviços';
-UPDATE PriceAoSwi SET PriceAoSwi = 0.13 WHERE Class= 'Serviços'
+		-- nova correção do dado referente a classe de serviços por aplicação equívoca da sintaxe/new correction regarding 'serviços' class due to mistaken application of the syntax --
+		UPDATE PricesAoSwi SET PriceAoSwi = 186.06 WHERE IDAoSwi= 35;
+		UPDATE PricesAoSwi SET PriceSwi = 58.45 WHERE IDAoSwi= 35;
+		UPDATE PricesAoSwi SET PriceAoSwi = 77.95 WHERE IDAoSwi= 37;
+		UPDATE PricesAoSwi SET PriceSwi = 242.38 WHERE IDAoSwi= 37;
+		UPDATE PricesAoMli SET PriceMli=2.75 WHERE PricesAoMli.ProductOrService = 'Tomates (1 Kg)';
+		UPDATE PricesAoMli SET PriceAoMli=2.38 WHERE PricesAoMli.ProductOrService = 'Tomates (1 Kg)';
 
--- nova correção do dado referente a classe de serviços por aplicação equívoca da sintaxe/new correction regarding 'serviços' class due to mistaken application of the syntax --
-
-UPDATE PricesAoSwi SET PriceAoSwi = 186.06 WHERE IDAoSwi= 35;
-UPDATE PricesAoSwi SET PriceSwi = 58.45 WHERE IDAoSwi= 35;
-
-UPDATE PricesAoSwi SET PriceAoSwi = 77.95 WHERE IDAoSwi= 37;
-UPDATE PricesAoSwi SET PriceSwi = 242.38 WHERE IDAoSwi= 37;
 
 --Até aqui, inserimos os dados das duas tabelas. daremos sequencia com algumas operações. |We have entered data from both tables. we will proceed with some operations.
-
 SELECT * FROM PricesAoSwi;
 SELECT * FROM PricesAoMli;
 
--- verificando se o número de registo é proporcional nas duas tabelas | checking if we have the same number of records in the two tables. 
 
+
+
+/*algumas operações entre as duas tabelas | some operations between the two tables*/
+
+
+
+-- verificando se o número de registo é proporcional nas duas tabelas | checking if we have the same number of records in the two tables. 
 SELECT COUNT (ProductOrService) AS "Itens Angola e Suíça"  FROM PricesAoSwi;
 SELECT COUNT (ProductOrService) AS "Itens Angola e Mali"  FROM PricesAoMli;
 
 -- por, equivocadamente, não termos comparado o item maçã para o caso de Angola e Mali, passaremos a incluí-lo na linha de código a seguir|because we have mistakenly not compared the "apple" item for angola and Mali, we will include it in the below line of code --
-
 INSERT INTO PricesAoMli(ProductOrService, Class, PriceAoMli)
 Values ('Maçãs (1 Kg)', 'Cesta Básica',3.37);
-
-SELECT * FROM PricesAoSwi;
-SELECT * FROM PricesAoMli;
 
 
 -- queremos saber que produtos são comparativamente mais caros entre Angola e Suiça, ordenados de maneira crescente | we want to know which products are comparatively more expensive between Angola and Switzerland, in ascending order --
@@ -279,7 +289,8 @@ SELECT PriceAoSwi, ProductOrService [Produto mais Caro em Angola] FROM PricesAoS
 SELECT PriceAoSwi, ProductOrService [Produto mais Barato em Angola] FROM PricesAoSwi WHERE PriceAoSwi IN (
 	SELECT MIN (PriceAoSwi) [Produto Menos Caro em Angola] FROM PricesAoSwi);
 
-	-- que produto é mais caro na Suiça, e qual o seu valor? Qual o mais Barato? | which product is more expensive in Switzerland, and how much is it? Which is the cheapest?--
+
+-- que produto é mais caro na Suiça, e qual o seu valor? Qual o mais Barato? | which product is more expensive in Switzerland, and how much is it? Which is the cheapest?--
 
 SELECT PriceSwi, ProductOrService [Produto mais Caro na Suiça] FROM PricesAoSwi WHERE PriceSwi IN (
 	SELECT MAX (PriceSwi) [Produto mais Caro em Angola] FROM PricesAoSwi);
@@ -299,10 +310,44 @@ SELECT SUM(PriceSwi) [Total de Bens da Cesta Básica na Suiça ($)] FROM PricesAoS
 
 SELECT *, ROUND((PriceAoSwi-PriceSwi),2) AS [Diferença ($)], ROUND(((PriceAoSwi/PriceSwi)*100),2) AS [Rácio (%)] FROM PricesAoSwi;
 
+
 -- que produtos em angola são mais baratos ou tem os preços equiparados na Suiça? | Which products in Angola are cheaper or have similar prices in Switzerland? --
 
 SELECT ProductOrService, ROUND(((PriceAoSwi/PriceSwi)*100),2) AS [Rácio (%)] FROM PricesAoSwi WHERE ((PriceAoSwi/PriceSwi)*100) <=100
 ORDER BY [Rácio (%)] DESC;
+
+
+-- Apresentar toda a relação de produtos referente aos tres países: Angola, Mali e Suiça | presenting the entire list of products referring to the three countries: Angola, Mali and Switzerland--
+
+SELECT IDAoSwi, IDAoMli, PricesAoMli.ProductOrService, PricesAoSwi.Class, PriceAoSwi,PriceSwi, PriceMli FROM PricesAoSwi FULL OUTER JOIN PricesAoMli
+ON PricesAoSwi.ProductOrService=PricesAoMli.ProductOrService ORDER BY IDAoSwi;
+
+
+-- Apresentar a relação de produtos que não tenha coreespondencia nas duas comparações | presenting the list of products that do not have a core response in the two comparisons --
+SELECT IDAoSwi, IDAoMli, PricesAoMli.ProductOrService, PricesAoSwi.Class, PriceAoSwi,PriceSwi, PriceMli FROM PricesAoSwi FULL OUTER JOIN PricesAoMli
+ON PricesAoSwi.ProductOrService=PricesAoMli.ProductOrService WHERE PricesAoSwi.PriceSwi IS NULL OR PricesAoMli.PriceMli IS NULL ORDER BY IDAoSwi;
+
+
+-- Apresentar apenas a relação de produtos que, a nível de preço, tenha coreespondencia nas duas comparações | presenting only the list of products that, in terms of price, are in line with the two comparisons--
+SELECT IDAoSwi, IDAoMli, PricesAoMli.ProductOrService, PricesAoSwi.Class, PriceAoSwi, PriceSwi, PriceMli FROM PricesAoSwi INNER JOIN PricesAoMli
+ON PricesAoSwi.ProductOrService=PricesAoMli.ProductOrService WHERE PricesAoMli.PriceMli IS NOT NULL AND PricesAoSwi.PriceSwi IS NOT NULL ORDER BY IDAoSwi;
+
+-- Apresentar apenas a relação de produtos da tabela comparativa de Angola e Suiça, MAIS apenas os que tem correspondencia na tabela Angola Mali | Presenting only the list of products in the comparative table for Angola and Switzerland, PLUS only those that correspond to the Angola Mali table--
+SELECT IDAoSwi, IDAoMli, PricesAoMli.ProductOrService, PricesAoSwi.Class, PriceAoSwi, PriceSwi, PriceMli FROM PricesAoSwi LEFT JOIN PricesAoMli
+ON PricesAoSwi.ProductOrService=PricesAoMli.ProductOrService WHERE PricesAoMli.PriceMli IS NOT NULL ORDER BY IDAoSwi;
+
+-- Apresentar apenas a relação de produtos da tabela comparativa de Angola e Suiça, e que não tem correspondencia na tabela Angola Mali | Presenting only the list of products in the comparative table for Angola and Switzerland, which has no correspondence in the Angola Mali table--
+SELECT IDAoSwi, IDAoMli, PricesAoMli.ProductOrService, PricesAoSwi.Class, PriceAoSwi, PriceSwi, PriceMli FROM PricesAoSwi LEFT JOIN PricesAoMli
+ON PricesAoSwi.ProductOrService=PricesAoMli.ProductOrService WHERE PricesAoMli.PriceMli IS NULL ORDER BY IDAoSwi;	
+
+
+-- Apresentar apenas a relação de produtos da tabela comparativa de Angola e Mali, e que não tem correspondencia na tabela Angola Suiça | Presenting only the list of products in the comparative table for Angola and Mali, which has no correspondence in the Angola Switzerland table--
+SELECT IDAoSwi, IDAoMli, PricesAoMli.ProductOrService, PricesAoSwi.Class, PriceAoSwi, PriceSwi, PriceMli FROM PricesAoSwi RIGHT JOIN PricesAoMli
+ON PricesAoSwi.ProductOrService=PricesAoMli.ProductOrService WHERE PricesAoSwi.PriceSwi IS NULL ORDER BY IDAoSwi;	
+
+-- Apresentar apenas a relação de produtos da tabela comparativa de Angola e Mali, MAIS apenas os que tem correspondencia na tabela Angola Suiça | Presenting only the list of products in the comparative table for Angola and Mali, PLUS only those that correspond to the Angola Switzerland table--
+SELECT IDAoSwi, IDAoMli, PricesAoMli.ProductOrService, PricesAoSwi.Class, PriceAoSwi, PriceSwi, PriceMli FROM PricesAoSwi RIGHT JOIN PricesAoMli
+ON PricesAoSwi.ProductOrService=PricesAoMli.ProductOrService WHERE PricesAoSwi.PriceSwi IS NOT NULL ORDER BY IDAoSwi;
 
 
 
